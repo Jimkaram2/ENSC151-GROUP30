@@ -1,0 +1,35 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>images/dropdown.png</file>
+        <file>images/logo.png</file>
+        <file>images/spinboxdown.png</file>
+        <file>images/spinboxup.png</file>
+        <file>images/ApplePie.png</file>
+        <file>images/BananaSplit.png</file>
+        <file>images/BreakfastSandwich.png</file>
+        <file>images/Brownies.png</file>
+        <file>images/CaesarSalad.png</file>
+        <file>images/CarrotCake.png</file>
+        <file>images/Cheeseburger.png</file>
+        <file>images/CheeseCake.png</file>
+        <file>images/ChickenStrips.png</file>
+        <file>images/ChickenWrap.png</file>
+        <file>images/ChocolateChipCookie.png</file>
+        <file>images/clubsandwitch.png</file>
+        <file>images/Coffee.png</file>
+        <file>images/Fries.png</file>
+        <file>images/Hashbrowns.png</file>
+        <file>images/IcedCoffee.png</file>
+        <file>images/IcedTea.png</file>
+        <file>images/MacaroniandCheese.png</file>
+        <file>images/MashedPotatoes.png</file>
+        <file>images/Milkshake.png</file>
+        <file>images/OnionRings.png</file>
+        <file>images/RoastedVegetables.png</file>
+        <file>images/Soda.png</file>
+        <file>images/SpaghettiBolognese.png</file>
+        <file>images/TaterTots.png</file>
+        <file>images/Tea.png</file>
+        <file>images/Tiramisu.png</file>
+    </qresource>
+</RCC>
