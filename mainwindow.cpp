@@ -19,6 +19,28 @@
 #include <QFile>
 #include <QTextStream>
 #include <QApplication>
+#include <QDateTime>   // ADDED: for timestamp in receipt (adapted from receipt.cpp)
+#include <cmath>       // ADDED: for round2() using round (adapted from receipt.cpp)
+using namespace std;
+
+/******************************************************************
+ * round2 --
+ *   Helper function that rounds a double to 2 decimal places.
+ *
+ *   ADAPTED FROM Elliots's receipt.cpp (OnlineGDB version).
+ *   Original idea: format money values cleanly on a printed receipt.
+ *   Same logic is used in our Qt-based receipt display.
+ *
+ * Parameters:
+ *   num - double value to round
+ *
+ * Returns:
+ *   double rounded to 2 decimal places
+ ******************************************************************/
+static double round2(double num)
+{
+    return round(num * 100.0) / 100.0;
+}
 
 /******************************************************************
  * MainWindow::MainWindow --
@@ -305,7 +327,8 @@ MainWindow::MainWindow(QWidget *parent)
  *   Destructor. Cleans up UI pointer.
  *
  * Parameters: none
- * Modifies: ui (deleted)
+ *
+ * Modifies: ui's target object (UI is destroyed and its memory freed)
  *
  * Returns: nothing
  ******************************************************************/
@@ -320,6 +343,11 @@ MainWindow::~MainWindow()
  * MainWindow::loadMenuItems --
  *   Load menu items from the menu file. If the file does not exist,
  *   create a default menu with hard-coded items, then save it.
+ *
+ *   ADAPTED FROM Sai's "Food Menu.cpp":
+ *     - Original was a console menu with these same items and prices.
+ *     - Here, we store them in a QVector<FoodItem> with category and
+ *       imagePath so they can be used in the Qt GUI.
  *
  * Parameters: none
  * Modifies:
@@ -870,6 +898,8 @@ void MainWindow::on_checkoutButton_clicked()
     double total = afterDiscount + taxAmount;
 
     // Show receipt dialog
+    // NOTE: showReceipt() is now adapted from receipt.cpp and uses round2()
+    // for consistent money formatting and adds date/time at the bottom.
     showReceipt(subtotal, discountAmount, taxAmount, total, couponCode);
 
     // Clear cart for next customer
@@ -882,11 +912,21 @@ void MainWindow::on_checkoutButton_clicked()
  *   Build a text receipt showing each item, the subtotal, discount,
  *   tax, and total, then display it in a QMessageBox.
  *
+ *   ADAPTED FROM Elliot's receipt.cpp:
+ *     - Kept the idea of listing items and showing subtotal, tax,
+ *       and total with clean 2-decimal formatting.
+ *     - REMOVED his separate 7% PST. This program only applies
+ *       a single 5% tax based on BC tax on food (TAX_RATE).
+ *     - Uses round2() for all money values (same logic as their
+ *       console version).
+ *     - Adds date and time at the bottom using QDateTime instead
+ *       of <ctime> since we are using Qt.
+ *
  * Parameters:
- *   subtotal - sum of item costs before discount
- *   discount - discount amount in dollars
- *   tax      - tax amount in dollars
- *   total    - final amount to pay
+ *   subtotal   - sum of item costs before discount
+ *   discount   - discount amount in dollars
+ *   tax        - tax amount in dollars (already 5% of discounted)
+ *   total      - final amount to pay
  *   couponCode - text of coupon applied (may be empty)
  *
  * Modifies:
@@ -896,35 +936,65 @@ void MainWindow::on_checkoutButton_clicked()
  ******************************************************************/
 void MainWindow::showReceipt(double subtotal, double discount, double tax, double total, QString couponCode)
 {
-    QString receipt = "========================================\n";
-    receipt += "         CAFETERIA RECEIPT\n";
+    // Round all monetary values to 2 decimal places (adapted from receipt.cpp)
+    subtotal = round2(subtotal);
+    discount = round2(discount);
+    tax      = round2(tax);
+    total    = round2(total);
+
+    QString receipt;
+    receipt += "========================================\n";
+    receipt += "           CAFETERIA RECEIPT\n";
     receipt += "========================================\n\n";
 
-    // List all cart items with quantity and line total
+    // Header row similar in spirit to teammate's receipt (Item / Price)
+    receipt += QString("%1%2%3\n")
+                   .arg("Qty",  -5)
+                   .arg("Item", -20)
+                   .arg("Price", 10);
+    receipt += "----------------------------------------\n";
+
+    // List all items in the cart (one row per OrderItem)
     for (const OrderItem &item : cart) {
         double itemTotal = item.price * item.quantity;
-        receipt += QString("%1 x %2\n")
-                       .arg(item.quantity, 3)
-                       .arg(item.name);
-        receipt += QString("    @ $%1 each          $%2\n\n")
-                       .arg(item.price, 0, 'f', 2)
-                       .arg(itemTotal, 0, 'f', 2);
+
+        // Each row: quantity, name (trimmed to 20 chars), line total
+        receipt += QString("%1%2%3\n")
+                       .arg(item.quantity, -5)
+                       .arg(item.name.left(20), -20)
+                       .arg(itemTotal, 10, 'f', 2);
     }
 
     receipt += "----------------------------------------\n";
-    receipt += QString("Subtotal:                     $%1\n").arg(subtotal, 0, 'f', 2);
 
+    // Show subtotal
+    receipt += QString("%1%2\n")
+                   .arg("Subtotal:", -25)
+                   .arg(subtotal, 10, 'f', 2);
+
+    // Show discount if any
     if (discount > 0.0) {
-        receipt += QString("Discount (%1):             -$%2\n")
-        .arg(couponCode)
-            .arg(discount, 0, 'f', 2);
+        QString label = QString("Discount (%1):").arg(couponCode);
+        receipt += QString("%1-%2\n")
+                       .arg(label, -25)
+                       .arg(discount, 9, 'f', 2);
     }
 
-    receipt += QString("Tax (5%%):                     $%1\n").arg(tax, 0, 'f', 2);
+    // NOTE: Only 5% tax is used (TAX_RATE).
+    // Teammate's receipt.cpp had both GST (5%) and PST (7%).
+    receipt += QString("%1%2\n")
+                   .arg("Tax (5%):", -25)
+                   .arg(tax, 10, 'f', 2);
+
     receipt += "----------------------------------------\n";
-    receipt += QString("TOTAL:                        $%1\n").arg(total, 0, 'f', 2);
-    receipt += "========================================\n";
-    receipt += "\n     Thank you for your order!\n";
+    receipt += QString("%1%2\n")
+                   .arg("TOTAL:", -25)
+                   .arg(total, 10, 'f', 2);
+    receipt += "========================================\n\n";
+
+    // Add date and time at the bottom (Qt version of ctime in receipt.cpp)
+    QDateTime now = QDateTime::currentDateTime();
+    receipt += "Date and Time: " + now.toString("yyyy-MM-dd hh:mm:ss") + "\n";
     receipt += "========================================\n";
 
     QMessageBox receiptBox;
