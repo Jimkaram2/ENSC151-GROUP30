@@ -27,7 +27,7 @@ using namespace std;
  * round2 --
  *   Helper function that rounds a double to 2 decimal places.
  *
- *   ADAPTED FROM Elliots's receipt.cpp (OnlineGDB version).
+ *   ADAPTED FROM Elliots's receipt.cpp.
  *   Original idea: format money values cleanly on a printed receipt.
  *   Same logic is used in our Qt-based receipt display.
  *
@@ -1188,3 +1188,4 @@ void MainWindow::on_saveChangesButton_clicked()
     saveMenuItems();
     QMessageBox::information(this, "Success", "All changes saved to file!");
 }
+
