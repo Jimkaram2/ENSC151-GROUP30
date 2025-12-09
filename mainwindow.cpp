@@ -19,8 +19,8 @@
 #include <QFile>
 #include <QTextStream>
 #include <QApplication>
-#include <QDateTime>   // ADDED: for timestamp in receipt (adapted from receipt.cpp)
-#include <cmath>       // ADDED: for round2() using round (adapted from receipt.cpp)
+#include <QDateTime>   
+#include <cmath>       
 using namespace std;
 
 /******************************************************************
@@ -1188,4 +1188,5 @@ void MainWindow::on_saveChangesButton_clicked()
     saveMenuItems();
     QMessageBox::information(this, "Success", "All changes saved to file!");
 }
+
 
